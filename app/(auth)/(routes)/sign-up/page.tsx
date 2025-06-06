@@ -260,7 +260,7 @@ export default function SignUpPage() {
 
             <Button
               type="submit"
-              className="w-full h-10"
+              className="w-full h-10 bg-[#BC8B26] hover:bg-[#BC8B26]/90 text-white"
               disabled={isLoading || !passwordChecks.isValid}
             >
               {isLoading ? "جاري إنشاء الحساب..." : "إنشاء حساب"}

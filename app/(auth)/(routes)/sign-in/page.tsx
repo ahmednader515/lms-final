@@ -150,7 +150,7 @@ export default function SignInPage() {
           </div>
           <Button
             type="submit"
-            className="w-full h-10"
+            className="w-full h-10 bg-[#BC8B26] hover:bg-[#BC8B26]/90 text-white"
             disabled={isLoading}
           >
             {isLoading ? "جاري تسجيل الدخول..." : "تسجيل الدخول"}

@@ -113,26 +113,28 @@ export default async function SearchPage({
                                 />
                                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity" />
                             </div>
-                            <div className="p-4">
-                                <h3 className="text-lg font-semibold mb-2 line-clamp-2">
-                                    {course.title}
-                                </h3>
-                                <div className="flex flex-col gap-2 text-sm text-muted-foreground mb-4">
-                                    <div className="flex items-center gap-2">
-                                        <BookOpen className="h-4 w-4" />
-                                        <span>{course.chapters.length} {course.chapters.length === 1 ? "فصل" : "فصول"}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Clock className="h-4 w-4" />
-                                        <span>آخر تحديث: {new Date(course.updatedAt).toLocaleDateString('ar', {
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Users className="h-4 w-4" />
-                                        <span>{course.purchases.length} طالب</span>
+                            <div className="p-4 flex flex-col justify-between h-[calc(400px-56.25%)]">
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-4 min-h-[3.5rem] line-clamp-2">
+                                        {course.title}
+                                    </h3>
+                                    <div className="flex flex-col gap-2 text-sm text-muted-foreground mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <BookOpen className="h-4 w-4" />
+                                            <span>{course.chapters.length} {course.chapters.length === 1 ? "فصل" : "فصول"}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Clock className="h-4 w-4" />
+                                            <span>آخر تحديث: {new Date(course.updatedAt).toLocaleDateString('ar', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric'
+                                            })}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Users className="h-4 w-4" />
+                                            <span>{course.purchases.length} طالب</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <Button 

@@ -524,7 +524,7 @@ export default function HomePage() {
             <p className="text-muted-foreground mb-8">
               انضم إلينا اليوم وابدأ رحلة النجاح
             </p>
-            <Button size="lg" asChild>
+            <Button size="lg" asChild className="bg-[#BC8B26] hover:bg-[#BC8B26]/90 text-white">
               <Link href="/sign-up">
                 سجل الآن <ArrowRight className="mr-2 h-4 w-4" />
               </Link>

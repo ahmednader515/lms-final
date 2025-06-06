@@ -107,7 +107,7 @@ const AnalyticsPage = () => {
     const fetchAnalytics = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get('/api/dashboard/teacher/analytics');
+        const response = await axios.get('/api/teacher/analytics');
         setAnalytics(response.data);
       } catch (error) {
         console.error('Error fetching analytics:', error);
