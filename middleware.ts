@@ -17,7 +17,7 @@ export default withAuth(
 
     // If user is not authenticated and trying to access protected routes
     if (!req.nextauth.token && !isAuthPage) {
-      return NextResponse.redirect(new URL("/sign-in", req.url));
+      return NextResponse.redirect(new URL("/sign-in", req.url), { status: 302 });
     }
 
     // If user is not a teacher but trying to access teacher routes

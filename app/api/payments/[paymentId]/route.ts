@@ -8,20 +8,13 @@ export async function GET(
   { params }: { params: Promise<{ paymentId: string }> }
 ) {
   try {
-    const { userId } = await auth();
     const resolvedParams = await params;
-
-    if (!userId) {
-      return new NextResponse("Unauthorized", { status: 401 });
-    }
-
     console.log(`[PAYMENT_API] Checking payment status for purchase: ${resolvedParams.paymentId}`);
 
-    // Find the purchase by ID
-    const purchase = await db.purchase.findFirst({
+    // Find the purchase by ID without requiring user authentication
+    const purchase = await db.purchase.findUnique({
       where: {
         id: resolvedParams.paymentId,
-        userId,
       },
       include: {
         payment: true,
