@@ -31,6 +31,8 @@ const PaymentStatusPage = () => {
       return;
     }
 
+    let isMounted = true;
+
     const checkPaymentStatus = async () => {
       try {
         console.log(`[PAYMENT_STATUS] Check #${checkCount + 1} for purchaseId: ${purchaseId}`);
@@ -39,6 +41,8 @@ const PaymentStatusPage = () => {
         const response = await axios.get<PaymentResponse>(`/api/payments/${purchaseId}`);
         console.log("[PAYMENT_STATUS] Response:", response.data);
         
+        if (!isMounted) return false;
+
         // Check both payment status and purchase status
         if (response.data.status === "COMPLETED" || 
             response.data.purchase?.status === "ACTIVE") {
@@ -56,7 +60,10 @@ const PaymentStatusPage = () => {
         }
       } catch (error) {
         console.error("[PAYMENT_STATUS] Error checking payment status:", error);
-        // Don't set status to error yet, continue checking
+        if (isMounted) {
+          // Don't set status to error yet, continue checking
+          return false;
+        }
         return false;
       }
     };
@@ -65,6 +72,8 @@ const PaymentStatusPage = () => {
     const setupChecks = async () => {
       // Initial check
       const verified = await checkPaymentStatus();
+      if (!isMounted) return;
+      
       setCheckCount(prev => prev + 1);
       
       if (verified) return; // Already verified on first check
@@ -72,21 +81,30 @@ const PaymentStatusPage = () => {
       // Set up interval for subsequent checks
       const intervalId = setInterval(async () => {
         const verified = await checkPaymentStatus();
+        if (!isMounted) return;
+        
         setCheckCount(c => c + 1);
         
         if (verified || checkCount >= MAX_CHECKS - 1) {
           clearInterval(intervalId);
-          if (checkCount >= MAX_CHECKS - 1 && !verified) {
+          if (checkCount >= MAX_CHECKS - 1 && !verified && isMounted) {
             console.log("[PAYMENT_STATUS] Max check attempts reached, setting error");
             setStatus("error");
           }
         }
       }, 5000);
       
-      return () => clearInterval(intervalId);
+      return () => {
+        clearInterval(intervalId);
+        isMounted = false;
+      };
     };
     
-    setupChecks();
+    const cleanup = setupChecks();
+    return () => {
+      cleanup?.then(cleanupFn => cleanupFn?.());
+      isMounted = false;
+    };
   }, [purchaseId, courseId, checkCount]);
 
   const handleContinueToCourse = () => {
