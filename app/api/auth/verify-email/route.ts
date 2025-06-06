@@ -31,7 +31,7 @@ export async function POST(req: Request) {
 
     // Send verification email
     await resend.emails.send({
-      from: "LMS <noreply@yourdomain.com>",
+      from: "Nader Ghazal <noreply@yourdomain.com>",
       to: email,
       subject: "تحقق من بريدك الإلكتروني",
       react: VerificationEmail({

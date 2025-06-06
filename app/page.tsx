@@ -112,20 +112,20 @@ export default function HomePage() {
       <Navbar />
       <ScrollProgress />
       {/* Hero Section */}
-      <section id="hero-section" className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      <section id="hero-section" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 md:pt-0">
+        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-0 md:gap-8 items-center">
           {/* Text Section */}
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center"
+            className="text-center mt-0 md:mt-0"
           >
             <h1 className="text-4xl md:text-6xl font-bold mb-4">
               نادر غزال
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8">
-              &ldquo;نادر غزال&rdquo; هو منصة تعليمية متكاملة تهدف إلى تبسيط المواد الدراسية
+             منصة تعليمية متكاملة تهدف إلى تبسيط المواد الدراسية
             </p>
             <Button size="lg" asChild className="bg-[#BC8B26] hover:bg-[#BC8B26]/90 text-white">
               <Link href="/sign-up">

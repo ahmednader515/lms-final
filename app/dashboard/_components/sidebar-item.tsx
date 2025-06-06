@@ -20,10 +20,7 @@ export const SidebarItem = ({
     const pathName = usePathname();
     const router = useRouter();
 
-    const isActive = 
-     (pathName === "/" && href === "/") ||
-     pathName === href ||
-     pathName?.startsWith(`${href}/`);
+    const isActive = pathName === href;
 
     const onClick = () => {
         router.push(href);
@@ -38,8 +35,7 @@ export const SidebarItem = ({
             isActive && "text-primary bg-primary/10 hover:bg-primary/10"
         )}
         >
-
-        <div className="flex items-center gap-x-2 py-4">
+        <div className="flex items-center gap-x-2 py-3">
             <Icon 
                 size={22} 
                 className={cn(
@@ -56,7 +52,6 @@ export const SidebarItem = ({
                 isActive && "opacity-100"
             )}
         />
-
         </button>
     )
 }

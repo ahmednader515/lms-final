@@ -37,9 +37,9 @@ export const SidebarRoutes = () => {
     const routes = isTeacherPage ? teacherRoutes : guestRoutes;
 
     return (
-        <div className="flex flex-col w-full">
+        <div className="flex flex-col w-full pt-0">
             {routes.map((route) => (
-                <SidebarItem  key={route.href} icon={route.icon} label={route.label} href={route.href} />
+                <SidebarItem key={route.href} icon={route.icon} label={route.label} href={route.href} />
             ))}
         </div>
     );
