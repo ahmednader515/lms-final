@@ -142,7 +142,7 @@ export default function HomePage() {
             className="relative h-[500px] w-full"
           >
             <Image
-              src="/dashboard/teacher-image.png"
+              src="/teacher-image.png"
               alt="نادر غزال"
               fill
               priority
