@@ -24,19 +24,6 @@ const PaymentStatusPage = () => {
   const MAX_CHECKS = 12;
 
   useEffect(() => {
-    // If we're on the payment status page, ensure we have the correct URL format
-    if (window.location.pathname.includes("/payment-status") && !purchaseId) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const purchaseId = urlParams.get("purchaseId");
-      const courseId = urlParams.get("courseId");
-      
-      if (purchaseId && courseId) {
-        // Redirect to the GET version of the URL
-        router.replace(`/courses/${courseId}/payment-status?purchaseId=${purchaseId}&courseId=${courseId}`);
-        return;
-      }
-    }
-
     if (!purchaseId || !courseId) {
       console.error("[PAYMENT_STATUS] Missing purchaseId or courseId");
       setStatus("error");
