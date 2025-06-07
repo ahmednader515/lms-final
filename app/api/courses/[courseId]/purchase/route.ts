@@ -106,7 +106,7 @@ export async function POST(
         customerEmail: user.email,
         customerName: user.name || "Customer",
         callbackUrl: `${baseUrl}/api/webhooks/paytabs`,
-        returnUrl: `${baseUrl}/api/payment/redirect?purchaseId=${newPurchase.id}&courseId=${resolvedParams.courseId}`,
+        returnUrl: `${baseUrl}/api/payment/status?purchaseId=${newPurchase.id}&courseId=${resolvedParams.courseId}`,
       };
       
       console.log("[PAYTABS_REQUEST] Creating payment link with params:", JSON.stringify(paymentParams, null, 2));
