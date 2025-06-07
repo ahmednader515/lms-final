@@ -24,6 +24,19 @@ const PaymentStatusPage = () => {
   const MAX_CHECKS = 12;
 
   useEffect(() => {
+    // If we're on the payment status page, ensure we have the correct URL format
+    if (window.location.pathname.includes("/payment-status") && !purchaseId) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const purchaseId = urlParams.get("purchaseId");
+      const courseId = urlParams.get("courseId");
+      
+      if (purchaseId && courseId) {
+        // Redirect to the GET version of the URL
+        router.replace(`/courses/${courseId}/payment-status?purchaseId=${purchaseId}&courseId=${courseId}`);
+        return;
+      }
+    }
+
     if (!purchaseId || !courseId) {
       console.error("[PAYMENT_STATUS] Missing purchaseId or courseId");
       setStatus("error");
@@ -36,7 +49,6 @@ const PaymentStatusPage = () => {
       try {
         console.log(`[PAYMENT_STATUS] Check #${checkCount + 1} for purchaseId: ${purchaseId}`);
         
-        // Check payment status from our database
         const response = await axios.get<PaymentResponse>(`/api/payments/${purchaseId}`);
         console.log("[PAYMENT_STATUS] Response:", response.data);
         
@@ -46,7 +58,7 @@ const PaymentStatusPage = () => {
             response.data.purchase?.status === "ACTIVE") {
           console.log("[PAYMENT_STATUS] Payment verified as completed");
           setStatus("success");
-          // Add a small delay before redirecting to ensure the status is shown
+          // Add a small delay before redirecting
           setTimeout(() => {
             router.push("/dashboard");
           }, 2000);
