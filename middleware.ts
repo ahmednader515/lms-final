@@ -29,6 +29,12 @@ export default withAuth(
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
 
+    // Handle POST requests to payment status page
+    if (isPaymentStatusPage && req.method === "POST") {
+      // Convert POST to GET by redirecting to the same URL
+      return NextResponse.redirect(req.url, { status: 303 });
+    }
+
     return NextResponse.next();
   },
   {
