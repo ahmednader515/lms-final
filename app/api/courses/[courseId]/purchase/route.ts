@@ -98,7 +98,7 @@ export async function POST(
 
     try {
       // Create a PayTabs payment link
-      const baseUrl = "https://nader-ghazal.vercel.app";
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
       const paymentParams = {
         courseId: resolvedParams.courseId,
         courseTitle: course.title,
