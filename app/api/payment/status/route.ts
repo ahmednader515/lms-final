@@ -11,10 +11,11 @@ export async function POST(req: Request) {
       return new NextResponse("Missing required parameters", { status: 400 });
     }
 
-    // Return a 307 Temporary Redirect to the payment status page
+    // Return a 303 See Other redirect to the payment status page
+    // This will change the request method to GET
     return NextResponse.redirect(
       new URL(`/courses/${courseId}/payment-status?purchaseId=${purchaseId}&courseId=${courseId}`, req.url),
-      { status: 307 }
+      { status: 303 }
     );
   } catch (error) {
     console.error("[PAYMENT_STATUS] Error:", error);
