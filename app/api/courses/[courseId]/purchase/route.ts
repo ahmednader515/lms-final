@@ -98,7 +98,7 @@ export async function POST(
 
     try {
       // Create a PayTabs payment link
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL;
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://nader-ghazal.vercel.app";
       const paymentParams = {
         courseId: resolvedParams.courseId,
         courseTitle: course.title,
@@ -106,7 +106,7 @@ export async function POST(
         customerEmail: user.email,
         customerName: user.name || "Customer",
         callbackUrl: `${baseUrl}/api/webhooks/paytabs`,
-        returnUrl: `${baseUrl}/courses/${resolvedParams.courseId}/payment-status?purchaseId=${newPurchase.id}&courseId=${resolvedParams.courseId}`,
+        returnUrl: `${baseUrl}/api/payment-redirect?purchaseId=${newPurchase.id}&courseId=${resolvedParams.courseId}`,
       };
       
       console.log("[PAYTABS_REQUEST] Creating payment link with params:", JSON.stringify(paymentParams, null, 2));
