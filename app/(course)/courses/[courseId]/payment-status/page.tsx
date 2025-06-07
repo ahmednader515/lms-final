@@ -18,11 +18,10 @@ const PaymentStatusPage = () => {
   const searchParams = useSearchParams();
   const routeParams = useParams();
   const purchaseId = searchParams.get("purchaseId");
-  // Use courseId from URL query params, otherwise fall back to route params
   const courseId = searchParams.get("courseId") || routeParams.courseId;
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [checkCount, setCheckCount] = useState(0);
-  const MAX_CHECKS = 12; // Check for 1 minute (12 * 5 seconds)
+  const MAX_CHECKS = 12;
 
   useEffect(() => {
     if (!purchaseId || !courseId) {
@@ -43,42 +42,41 @@ const PaymentStatusPage = () => {
         
         if (!isMounted) return false;
 
-        // Check both payment status and purchase status
         if (response.data.status === "COMPLETED" || 
             response.data.purchase?.status === "ACTIVE") {
           console.log("[PAYMENT_STATUS] Payment verified as completed");
           setStatus("success");
-          return true; // Payment verified
+          // Add a small delay before redirecting to ensure the status is shown
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 2000);
+          return true;
         } else if (response.data.status === "FAILED" || 
                   response.data.purchase?.status === "FAILED") {
           console.log("[PAYMENT_STATUS] Payment verified as failed");
           setStatus("error");
-          return true; // Payment verified (as failed)
+          return true;
         } else {
           console.log("[PAYMENT_STATUS] Payment still pending, continuing checks");
-          return false; // Payment still pending
+          return false;
         }
       } catch (error) {
         console.error("[PAYMENT_STATUS] Error checking payment status:", error);
         if (isMounted) {
-          // Don't set status to error yet, continue checking
           return false;
         }
         return false;
       }
     };
 
-    // Setup the check interval
     const setupChecks = async () => {
-      // Initial check
       const verified = await checkPaymentStatus();
       if (!isMounted) return;
       
       setCheckCount(prev => prev + 1);
       
-      if (verified) return; // Already verified on first check
+      if (verified) return;
       
-      // Set up interval for subsequent checks
       const intervalId = setInterval(async () => {
         const verified = await checkPaymentStatus();
         if (!isMounted) return;
@@ -105,11 +103,7 @@ const PaymentStatusPage = () => {
       cleanup?.then(cleanupFn => cleanupFn?.());
       isMounted = false;
     };
-  }, [purchaseId, courseId, checkCount]);
-
-  const handleContinueToCourse = () => {
-    router.push(`/dashboard`);
-  };
+  }, [purchaseId, courseId, checkCount, router]);
 
   const handleTryAgain = () => {
     router.push(`/courses/${courseId}/purchase`);
@@ -137,8 +131,8 @@ const PaymentStatusPage = () => {
           <p className="text-muted-foreground mb-6">
               تمت معالجة دفعتك بنجاح. لديك الآن وصول كامل إلى الدورة.
           </p>
-          <Button onClick={handleContinueToCourse} size="lg" className="w-full">
-            لوحة التحكم
+          <Button onClick={handleTryAgain} size="lg" className="w-full">
+            حاول مرة اخري
           </Button>
         </div>
       </div>

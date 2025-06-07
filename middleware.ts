@@ -9,6 +9,9 @@ export default withAuth(
                       req.nextUrl.pathname.startsWith("/sign-up") ||
                       req.nextUrl.pathname.startsWith("/forgot-password") ||
                       req.nextUrl.pathname.startsWith("/reset-password");
+    
+    // Add check for payment status page
+    const isPaymentStatusPage = req.nextUrl.pathname.includes("/payment-status");
 
     // If user is on auth page and is authenticated, redirect to dashboard
     if (isAuthPage && req.nextauth.token) {
@@ -16,7 +19,8 @@ export default withAuth(
     }
 
     // If user is not authenticated and trying to access protected routes
-    if (!req.nextauth.token && !isAuthPage) {
+    // But exclude payment status page from this check
+    if (!req.nextauth.token && !isAuthPage && !isPaymentStatusPage) {
       return NextResponse.redirect(new URL("/sign-in", req.url), { status: 302 });
     }
 
