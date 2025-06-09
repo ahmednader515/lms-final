@@ -99,7 +99,7 @@ const CoursesPage = async () => {
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             <div className="p-4">
-              <h3 className="text-lg font-semibold mb-2 line-clamp-2">
+              <h3 className="text-lg font-semibold mb-2 line-clamp-2 h-[3.5rem]">
                 {course.title}
               </h3>
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">

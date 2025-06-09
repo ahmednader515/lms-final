@@ -37,17 +37,41 @@ export async function POST(
           courseId: resolvedParams.courseId,
         },
       },
+      include: {
+        payment: true
+      }
     });
 
-    // Only block purchase if the status is ACTIVE or PENDING
-    if (purchase && (purchase.status === "ACTIVE" || purchase.status === "PENDING")) {
-      console.log(`[PURCHASE_ERROR] User ${userId} already has an active or pending purchase for course ${resolvedParams.courseId}`);
-      
-      if (purchase.status === "ACTIVE") {
-        return new NextResponse("You have already purchased this course", { status: 400 });
+    // Check for existing pending purchase and its age
+    if (purchase && purchase.status === "PENDING") {
+      const purchaseAge = Date.now() - purchase.createdAt.getTime();
+      const PENDING_TIMEOUT = 30 * 60 * 1000; // 30 minutes in milliseconds
+
+      // If the pending purchase is older than 30 minutes, delete it and allow new purchase
+      if (purchaseAge > PENDING_TIMEOUT) {
+        console.log(`[PURCHASE] Removing expired pending purchase for user ${userId}, course ${resolvedParams.courseId}`);
+        
+        // Delete the associated payment if it exists
+        if (purchase.payment) {
+          await db.payment.delete({
+            where: { id: purchase.payment.id }
+          });
+        }
+        
+        // Delete the expired purchase
+        await db.purchase.delete({
+          where: { id: purchase.id }
+        });
       } else {
+        console.log(`[PURCHASE_ERROR] User ${userId} has a pending purchase for course ${resolvedParams.courseId}`);
         return new NextResponse("You have a pending purchase for this course. Please complete the payment or try again later.", { status: 400 });
       }
+    }
+
+    // Only block purchase if the status is ACTIVE
+    if (purchase && purchase.status === "ACTIVE") {
+      console.log(`[PURCHASE_ERROR] User ${userId} already has an active purchase for course ${resolvedParams.courseId}`);
+      return new NextResponse("You have already purchased this course", { status: 400 });
     }
 
     // If there's a FAILED purchase record, delete it before creating a new one
@@ -55,13 +79,9 @@ export async function POST(
       console.log(`[PURCHASE] Removing previous failed purchase for user ${userId}, course ${resolvedParams.courseId}`);
       
       // Delete the previous payment record if it exists
-      const previousPayment = await db.payment.findFirst({
-        where: { purchaseId: purchase.id }
-      });
-      
-      if (previousPayment) {
+      if (purchase.payment) {
         await db.payment.delete({
-          where: { id: previousPayment.id }
+          where: { id: purchase.payment.id }
         });
       }
       

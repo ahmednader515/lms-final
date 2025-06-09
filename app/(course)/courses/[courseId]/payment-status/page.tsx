@@ -4,12 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, Link, XCircle } from "lucide-react";
 
 interface PaymentResponse {
-  status: "COMPLETED" | "FAILED" | "PENDING";
+  status: "COMPLETED" | "FAILED" | "PENDING" | "CANCELED";
   purchase?: {
-    status: "ACTIVE" | "FAILED" | "PENDING";
+    status: "ACTIVE" | "FAILED" | "PENDING" | "CANCELED";
   };
 }
 
@@ -51,17 +51,39 @@ const PaymentStatusPage = () => {
           }, 2000);
           return true;
         } else if (response.data.status === "FAILED" || 
-                  response.data.purchase?.status === "FAILED") {
-          console.log("[PAYMENT_STATUS] Payment verified as failed");
+                  response.data.purchase?.status === "FAILED" ||
+                  response.data.status === "CANCELED" ||
+                  response.data.purchase?.status === "CANCELED") {
+          console.log("[PAYMENT_STATUS] Payment verified as failed/canceled");
           setStatus("error");
           return true;
-        } else {
+        } else if (response.data.status === "PENDING" || 
+                  response.data.purchase?.status === "PENDING") {
+          // If it's still pending after max checks, consider it canceled
+          if (checkCount >= MAX_CHECKS - 1) {
+            console.log("[PAYMENT_STATUS] Payment still pending after max checks, considering it canceled");
+            setStatus("error");
+            return true;
+          }
           console.log("[PAYMENT_STATUS] Payment still pending, continuing checks");
           return false;
+        } else {
+          // For any other status, consider it an error
+          console.log("[PAYMENT_STATUS] Unknown payment status, treating as error");
+          setStatus("error");
+          return true;
         }
       } catch (error) {
         console.error("[PAYMENT_STATUS] Error checking payment status:", error);
         if (isMounted) {
+          // If we get a 404, it means the purchase/payment was not found
+          // This could happen if the purchase was deleted or expired
+          if (axios.isAxiosError(error) && error.response?.status === 404) {
+            console.log("[PAYMENT_STATUS] Purchase/payment not found, treating as error");
+            setStatus("error");
+            return true;
+          }
+          // For other errors, continue checking
           return false;
         }
         return false;
@@ -104,8 +126,17 @@ const PaymentStatusPage = () => {
     };
   }, [purchaseId, courseId, checkCount, router]);
 
-  const handleTryAgain = () => {
-    router.push(`/courses/${courseId}/purchase`);
+  const handleTryAgain = async () => {
+    try {
+      // First, try to delete the failed/pending purchase
+      await axios.delete(`/api/courses/${courseId}/purchase/${purchaseId}`);
+      // Then redirect to purchase page
+      router.push(`/courses/${courseId}/purchase`);
+    } catch (error) {
+      console.error("[PAYMENT_STATUS] Error deleting purchase:", error);
+      // If deletion fails, just redirect to purchase page
+      router.push(`/courses/${courseId}/purchase`);
+    }
   };
 
   if (status === "loading") {
@@ -130,8 +161,10 @@ const PaymentStatusPage = () => {
           <p className="text-muted-foreground mb-6">
               تمت معالجة دفعتك بنجاح. لديك الآن وصول كامل إلى الدورة.
           </p>
-          <Button onClick={handleTryAgain} size="lg" className="w-full">
-            حاول مرة اخري
+          <Button asChild size="lg" className="w-full">
+            <Link href="/dashboard">
+              لوحة التحكم
+            </Link>
           </Button>
         </div>
       </div>
@@ -144,7 +177,7 @@ const PaymentStatusPage = () => {
         <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
         <h1 className="text-2xl font-bold mb-2">فشل الدفع</h1>
         <p className="text-muted-foreground mb-6">
-        تعذّر علينا معالجة دفعتك. يرجى المحاولة مرة أخرى أو التواصل مع الدعم إذا استمرت المشكلة.
+          تم إلغاء عملية الدفع أو فشلت. يمكنك المحاولة مرة أخرى.
         </p>
         <Button onClick={handleTryAgain} size="lg" className="w-full">
           حاول مرة اخري

@@ -8,47 +8,37 @@ export async function GET(
   { params }: { params: Promise<{ paymentId: string }> }
 ) {
   try {
+    const { userId } = await auth();
     const resolvedParams = await params;
-    console.log(`[PAYMENT_API] Checking payment status for purchase: ${resolvedParams.paymentId}`);
 
-    // Find the purchase by ID without requiring user authentication
+    if (!userId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    // Find the purchase by ID
     const purchase = await db.purchase.findUnique({
       where: {
         id: resolvedParams.paymentId,
       },
       include: {
-        payment: true,
-      },
+        payment: true
+      }
     });
 
     if (!purchase) {
-      console.error(`[PAYMENT_API] Purchase ${resolvedParams.paymentId} not found`);
+      console.log(`[PAYMENT_API] No purchase found for ID: ${resolvedParams.paymentId}`);
       return new NextResponse("Purchase not found", { status: 404 });
     }
 
-    console.log(`[PAYMENT_API] Found purchase with status: ${purchase.status}`);
-
-    // If purchase is already ACTIVE, return success
-    if (purchase.status === "ACTIVE") {
-      console.log(`[PAYMENT_API] Purchase ${purchase.id} is already ACTIVE`);
-      return NextResponse.json({
-        id: purchase.payment?.id,
-        status: "COMPLETED",
-        amount: purchase.payment?.amount || 0,
-        currency: purchase.payment?.currency || "EGP",
-        transactionReference: purchase.payment?.transactionReference,
-        createdAt: purchase.payment?.createdAt,
-        purchase: {
-          id: purchase.id,
-          status: purchase.status,
-        },
-      });
+    // Verify that the purchase belongs to the current user
+    if (purchase.userId !== userId) {
+      console.log(`[PAYMENT_API] Purchase ${purchase.id} does not belong to user ${userId}`);
+      return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    // If there's no payment record, that's a problem
     if (!purchase.payment) {
-      console.error(`[PAYMENT_API] No payment record found for purchase ${purchase.id}`);
-      return new NextResponse("Payment record not found", { status: 404 });
+      console.log(`[PAYMENT_API] No payment found for purchase: ${purchase.id}`);
+      return new NextResponse("Payment not found", { status: 404 });
     }
 
     // Try to verify payment with PayTabs
@@ -79,13 +69,13 @@ export async function GET(
         });
         
         console.log(`[PAYMENT_API] Updated purchase ${purchase.id} to ACTIVE`);
-      } else if (responseStatus === "D" || responseStatus === "E" || responseStatus === "X") {
-        status = "FAILED";
+      } else if (responseStatus === "D" || responseStatus === "E" || responseStatus === "X" || responseStatus === "C") {
+        status = responseStatus === "C" ? "CANCELED" : "FAILED";
         
         // Update payment status
         await db.payment.update({
           where: { id: purchase.payment.id },
-          data: { status: "FAILED" },
+          data: { status },
         });
 
         // Update purchase status
@@ -94,45 +84,31 @@ export async function GET(
           data: { status: "FAILED" },
         });
         
-        console.log(`[PAYMENT_API] Updated purchase ${purchase.id} to FAILED`);
+        console.log(`[PAYMENT_API] Updated purchase ${purchase.id} to FAILED (payment ${status})`);
       }
 
-      // Refresh purchase data
-      const updatedPurchase = await db.purchase.findUnique({
-        where: { id: purchase.id },
-        include: { payment: true },
-      });
-
+      // Return the current status
       return NextResponse.json({
-        id: updatedPurchase?.payment?.id,
         status: status,
-        amount: updatedPurchase?.payment?.amount || 0,
-        currency: updatedPurchase?.payment?.currency || "EGP",
-        transactionReference: updatedPurchase?.payment?.transactionReference,
-        createdAt: updatedPurchase?.payment?.createdAt,
         purchase: {
-          id: updatedPurchase?.id,
-          status: updatedPurchase?.status,
-        },
+          status: purchase.status
+        }
       });
     } catch (error) {
       console.error("[PAYMENT_API] Error verifying payment:", error);
-      // Return current status
+      // Return the current status even if verification fails
       return NextResponse.json({
-        id: purchase.payment.id,
         status: purchase.payment.status,
-        amount: purchase.payment.amount,
-        currency: purchase.payment.currency,
-        transactionReference: purchase.payment.transactionReference,
-        createdAt: purchase.payment.createdAt,
         purchase: {
-          id: purchase.id,
-          status: purchase.status,
-        },
+          status: purchase.status
+        }
       });
     }
   } catch (error) {
     console.error("[PAYMENT_API] Error:", error);
+    if (error instanceof Error) {
+      return new NextResponse(`Internal Error: ${error.message}`, { status: 500 });
+    }
     return new NextResponse("Internal Error", { status: 500 });
   }
 } 

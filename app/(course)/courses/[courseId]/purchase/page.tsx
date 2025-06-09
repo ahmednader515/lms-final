@@ -52,14 +52,73 @@ const PurchasePage = ({ params }: PurchasePageProps) => {
       setIsProcessing(true);
       const response = await axios.post(`/api/courses/${courseId}/purchase`);
       
+      // Store the purchaseId in sessionStorage for cleanup
+      sessionStorage.setItem('pendingPurchaseId', response.data.purchaseId);
+      
+      // Add event listener for page visibility change
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'hidden') {
+          // Page is being hidden (user is navigating away or closing tab)
+          cleanupPendingPurchase(response.data.purchaseId);
+        }
+      };
+
+      // Add event listener for beforeunload
+      const handleBeforeUnload = () => {
+        cleanupPendingPurchase(response.data.purchaseId);
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+
       // Redirect to PayTabs payment page
       window.location.href = response.data.paymentUrl;
+
+      // Cleanup event listeners after navigation
+      return () => {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('beforeunload', handleBeforeUnload);
+      };
     } catch (error) {
       console.error("Error initiating payment:", error);
       toast.error("Failed to initiate payment");
       setIsProcessing(false);
     }
   };
+
+  // Function to cleanup pending purchase
+  const cleanupPendingPurchase = async (purchaseId: string) => {
+    try {
+      // Instead of deleting, update the status to CANCELED
+      await axios.patch(`/api/courses/${courseId}/purchase/${purchaseId}/cancel`);
+      sessionStorage.removeItem('pendingPurchaseId');
+    } catch (error) {
+      console.error("Error updating purchase status:", error);
+    }
+  };
+
+  // Check for any pending purchases on component mount
+  useEffect(() => {
+    const checkPendingPurchase = async () => {
+      const pendingPurchaseId = sessionStorage.getItem('pendingPurchaseId');
+      if (pendingPurchaseId) {
+        try {
+          // Try to get the purchase status
+          const response = await axios.get(`/api/payments/${pendingPurchaseId}`);
+          
+          // If the purchase is still pending, mark it as canceled
+          if (response.data.status === "PENDING" || response.data.purchase?.status === "PENDING") {
+            await cleanupPendingPurchase(pendingPurchaseId);
+          }
+        } catch (error) {
+          // If there's an error, mark the purchase as canceled
+          await cleanupPendingPurchase(pendingPurchaseId);
+        }
+      }
+    };
+
+    checkPendingPurchase();
+  }, [courseId]);
 
   if (loading) {
     return (
