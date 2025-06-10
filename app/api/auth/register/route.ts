@@ -39,7 +39,7 @@ export async function POST(req: Request) {
 
     // Try to send OTP email first
     const { error } = await resend.emails.send({
-      from: "Nader Ghazal <onboarding@resend.dev>",
+      from: "Nader Ghazal <noreply@mordesustudio.com>",
       to: email,
       subject: "رمز التحقق الخاص بك",
       react: OtpEmail({

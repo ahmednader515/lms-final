@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Link, XCircle } from "lucide-react";
+import { CheckCircle, Link as LinkIcon, XCircle } from "lucide-react";
+import Link from "next/link";
 
 interface PaymentResponse {
   status: "COMPLETED" | "FAILED" | "PENDING" | "CANCELED";

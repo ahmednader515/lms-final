@@ -40,7 +40,7 @@ export async function POST(req: Request) {
 
     // Send reset password email
     const { error } = await resend.emails.send({
-      from: "Nader Ghazal <onboarding@resend.dev>",
+      from: "Nader Ghazal <noreply@mordesustudio.com>",
       to: email,
       subject: "إعادة تعيين كلمة المرور",
       react: ResetPasswordEmail({
